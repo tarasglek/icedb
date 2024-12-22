@@ -86,7 +86,7 @@ ice = IceDBv3(
     s3_client=s3c,
     # Other settings
     path_safe_hostname="dan-mbp",
-    compression_codec=CompressionCodec.ZSTD
+    compression_codec=CompressionCodec.ZSTD,  # Use ZSTD for higher compression ratio compared to default SNAPPY
 )
 
 # Insert records
