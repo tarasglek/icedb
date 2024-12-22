@@ -57,7 +57,7 @@ ice = IceDBv3(
     "us-east-1",
     "user",
     "password",
-    "http://localhost:9000",
+    "http://localhost:9900",
     s3c,
     "dan-mbp",
     s3_use_path=True,  # needed for local minio
