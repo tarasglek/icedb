@@ -144,4 +144,7 @@ while True:
     else:
         break;
 tombstoned = ice.tombstone_cleanup(10_000)
-print('tombstoned', tombstoned)
+cleaned_logs, deleted_logs, deleted_data = tombstoned
+print(f"{len(cleaned_logs)} cleaned log files:", cleaned_logs)
+print(f"{len(deleted_logs)} deleted log files:", deleted_logs)
+print(f"{len(deleted_data)} deleted data files:", deleted_data)
