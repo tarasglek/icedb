@@ -10,16 +10,20 @@ S3_CONFIG = {
     "s3_endpoint": "http://localhost:9900",
     "s3_access_key_id": "user", 
     "s3_secret_access_key": "password",
-    "s3_bucket": "testbucket",
-    "s3_prefix": "example",
     "s3_use_ssl": False,
     "s3_url_style": "path"  # can be 'path' or 'vhost'
 }
 
+# Bucket-specific S3 config not used by DuckDB
+S3_BUCKET_CONFIG = {
+    "bucket": "testbucket",
+    "prefix": "example",
+}
+
 # create an s3 client to talk to minio
 s3c = S3Client(
-    s3prefix=S3_CONFIG["s3_prefix"],
-    s3bucket=S3_CONFIG["s3_bucket"],
+    s3prefix=S3_BUCKET_CONFIG["prefix"],
+    s3bucket=S3_BUCKET_CONFIG["bucket"],
     s3region=S3_CONFIG["s3_region"],
     s3endpoint=S3_CONFIG["s3_endpoint"],
     s3accesskey=S3_CONFIG["s3_access_key_id"],
