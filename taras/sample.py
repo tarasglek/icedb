@@ -74,15 +74,18 @@ def part_func(row: dict) -> str:
 
 # Initialize the client
 ice = IceDBv3(
-    part_func,
-    ['event', 'ts'],
-    S3_CONFIG["s3_region"],
-    S3_CONFIG["s3_access_key_id"],
-    S3_CONFIG["s3_secret_access_key"],
-    S3_CONFIG["s3_endpoint"],
-    s3c,
-    "dan-mbp",
+    partition_function=part_func,
+    sort_order=['event', 'ts'],
+    # S3 settings from config
+    s3_region=S3_CONFIG["s3_region"],
+    s3_access_key=S3_CONFIG["s3_access_key_id"],
+    s3_secret_key=S3_CONFIG["s3_secret_access_key"],
+    s3_endpoint=S3_CONFIG["s3_endpoint"],
     s3_use_path=S3_CONFIG["s3_url_style"] == "path",
+    # S3 client instance
+    s3_client=s3c,
+    # Other settings
+    path_safe_hostname="dan-mbp",
     compression_codec=CompressionCodec.ZSTD
 )
 
