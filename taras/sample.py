@@ -132,7 +132,14 @@ query = ("select user_id, count(*), (properties::JSON)->>'page_name' as page "
 )
 print(ddb.sql(query))
 
-merged = ice.merge()
-print('merged', merged)
+new_log, new_file_marker, partition, merged_file_markers, meta = ice.merge()
+if partition:  # if any merge happened
+    print(f"Merged partition: {partition}")
+    if merged_file_markers:
+        print_file_stats("source files merged", merged_file_markers)
+    if new_file_marker:
+        print_file_stats("new merged file", [new_file_marker])
+else:
+    print("No files were merged")
 # tombstoned = ice.tombstone_cleanup(10_000)
 # print('tombstoned', tombstoned)
