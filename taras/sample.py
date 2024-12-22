@@ -1,5 +1,5 @@
 import duckdb
-from icedb.log import S3Client, IceLogIO
+from icedb.log import S3Client, IceLogIO, FileMarker
 from icedb import IceDBv3, CompressionCodec
 from datetime import datetime
 from time import time
