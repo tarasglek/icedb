@@ -4,6 +4,16 @@ from icedb import IceDBv3, CompressionCodec
 from datetime import datetime
 from time import time
 
+def print_file_stats(description: str, files: list[FileMarker]):
+    """Print summary and details of file markers.
+    
+    Args:
+        description: Description of the file group (e.g. "alive", "tombstoned")
+        files: List of FileMarker objects to summarize
+    """
+    paths = list(map(lambda x: x.path, files))
+    print(f"{len(paths)} {description} files:", paths)
+
 # S3 configuration dictionary
 S3_CONFIG = {
     "s3_region": "us-east-1",
@@ -97,12 +107,9 @@ print('inserted', inserted)
 log = IceLogIO("demo-host")
 _, file_markers, _, _ = log.read_at_max_time(s3c, round(time() * 1000))
 alive_files = list(filter(lambda x: x.tombstone is None, file_markers))
-ls = list(map(lambda x: x.path, alive_files))
-print(f"{len(ls)} alive files", ls)
-
 tombstoned_files = list(filter(lambda x: x.tombstone, file_markers))
-ls = list(map(lambda x: x.path, tombstoned_files))
-print(f"{len(ls)} tombstoned_files", ls)
+print_file_stats("alive", alive_files)
+print_file_stats("tombstoned", tombstoned_files)
 
 # Setup duckdb for querying local minio
 ddb = duckdb.connect(":memory:")
