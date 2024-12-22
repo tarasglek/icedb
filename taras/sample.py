@@ -101,7 +101,7 @@ ice = IceDBv3(
 
 # Insert records
 inserted = ice.insert(example_events)
-print('inserted', inserted)
+print_file_stats("inserted", inserted)
 
 # Read the log state
 log = IceLogIO("demo-host")
@@ -132,14 +132,16 @@ query = ("select user_id, count(*), (properties::JSON)->>'page_name' as page "
 )
 print(ddb.sql(query))
 
-new_log, new_file_marker, partition, merged_file_markers, meta = ice.merge()
-if partition:  # if any merge happened
-    print(f"Merged partition: {partition}")
-    if merged_file_markers:
-        print_file_stats("source files merged", merged_file_markers)
-    if new_file_marker:
-        print_file_stats("new merged file", [new_file_marker])
-else:
-    print("No files were merged")
-# tombstoned = ice.tombstone_cleanup(10_000)
-# print('tombstoned', tombstoned)
+while True:
+    new_log, new_file_marker, partition, merged_file_markers, meta = ice.merge()
+    more_to_merge = partition is not None
+    if partition:  # if any merge happened
+        print(f"Merged partition: {partition}")
+        if merged_file_markers:
+            print_file_stats("source files merged", merged_file_markers)
+        if new_file_marker:
+            print_file_stats("new merged file", [new_file_marker])
+    else:
+        break;
+tombstoned = ice.tombstone_cleanup(10_000)
+print('tombstoned', tombstoned)
