@@ -316,9 +316,10 @@ class IceLogIO:
         Returns the schema, file markers, log tombstones, and the list of log files read.
         """
         s3_files = self.get_current_log_files(s3client)
-
+        print(f"read_at_max_time({timestamp}): {s3_files}")
         # Filter out files that are too old
         s3_files = list(filter(lambda x: get_log_file_info(x['Key'])[0] < timestamp, s3_files))
+        print(f"read_at_max_time filtered: {s3_files}")
 
         if len(s3_files) == 0:
             raise NoLogFilesException
