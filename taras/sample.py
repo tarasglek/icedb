@@ -97,6 +97,12 @@ print('inserted', inserted)
 log = IceLogIO("demo-host")
 _, file_markers, _, _ = log.read_at_max_time(s3c, round(time() * 1000))
 alive_files = list(filter(lambda x: x.tombstone is None, file_markers))
+ls = list(map(lambda x: x.path, alive_files))
+print(f"{len(ls)} alive files", ls)
+
+tombstoned_files = list(filter(lambda x: x.tombstone, file_markers))
+ls = list(map(lambda x: x.path, tombstoned_files))
+print(f"{len(ls)} tombstoned_files", ls)
 
 # Setup duckdb for querying local minio
 ddb = duckdb.connect(":memory:")
@@ -118,3 +124,8 @@ query = ("select user_id, count(*), (properties::JSON)->>'page_name' as page "
     ', '.join(list(map(lambda x: "'s3://" + ice.data_s3c.s3bucket + "/" + x.path + "'", alive_files)))
 )
 print(ddb.sql(query))
+
+merged = ice.merge()
+print('merged', merged)
+# tombstoned = ice.tombstone_cleanup(10_000)
+# print('tombstoned', tombstoned)
