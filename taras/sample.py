@@ -74,8 +74,8 @@ def part_func(row: dict) -> str:
 
 # Initialize the client
 ice = IceDBv3(
-    partition_function=part_func,
-    sort_order=['event', 'ts'],
+    partition_function=part_func,  # Partitions by user_id and date
+    sort_order=['event', 'ts'],   # Sort by event, then timestamp of the event within the data part
     # S3 settings from config
     s3_region=S3_CONFIG["s3_region"],
     s3_access_key=S3_CONFIG["s3_access_key_id"],
