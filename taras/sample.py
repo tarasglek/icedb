@@ -5,7 +5,7 @@ from datetime import datetime
 from time import time
 
 # create an s3 client to talk to minio
-s3c = S3Client(s3prefix="example", s3bucket="testbucket", s3region="us-east-1", s3endpoint="http://localhost:9000",
+s3c = S3Client(s3prefix="example", s3bucket="testbucket", s3region="us-east-1", s3endpoint="http://localhost:9900",
                s3accesskey="user", s3secretkey="password")
 
 example_events = [
@@ -80,7 +80,7 @@ ddb.execute("load httpfs")
 ddb.execute("SET s3_region='us-east-1'")
 ddb.execute("SET s3_access_key_id='user'")
 ddb.execute("SET s3_secret_access_key='password'")
-ddb.execute("SET s3_endpoint='localhost:9000'")
+ddb.execute("SET s3_endpoint='localhost:9900'")
 ddb.execute("SET s3_use_ssl='false'")
 ddb.execute("SET s3_url_style='path'")
 
