@@ -290,6 +290,7 @@ class IceDBv3:
             # Now we need to get the current state of the files we just merged, and write that plus the new state
             # We can keep the current schema
             merged_log_files = list(map(lambda x: x.vir_source_log_file, acc_file_markers))
+            print("merged_log_files: ", merged_log_files)
             m_schema, m_file_markers, m_tombstones = logio.read_log_forward(self.log_s3c, merged_log_files)
 
             # create new log file with tombstones
@@ -394,7 +395,7 @@ class IceDBv3:
                 Bucket=self.data_s3c.s3bucket,
                 Key=data_path
             )
-            deleted_data_files.append(data_path)
+            deleted_log_files.append(data_path)
 
 
 
