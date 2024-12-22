@@ -356,6 +356,8 @@ class IceLogIO:
             Bucket=s3client.s3bucket,
             Key=file_key
         )
+        print(file_key)
+        print('\n'.join(log_file_lines))
         return file_key, meta
 
 def get_log_file_info(file_name: str) -> tuple[int, bool]:

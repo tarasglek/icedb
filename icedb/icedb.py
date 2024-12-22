@@ -308,7 +308,7 @@ class IceDBv3:
 
             new_tombstones = list(map(lambda x: LogTombstone(x, merged_time),
                                       merged_log_files))
-
+            print("new_tombstones", new_tombstones)
             new_log, meta = logio.append(
                 self.log_s3c,
                 1,
