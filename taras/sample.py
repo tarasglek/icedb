@@ -102,8 +102,11 @@ ddb.execute("load httpfs")
 
 # Set DuckDB S3 configuration from the config dictionary
 for key, value in S3_CONFIG.items():
-    if isinstance(value, bool):
+    if key == "s3_use_ssl":
         value = str(value).lower()
+    elif key == "s3_endpoint":
+        # Strip protocol prefix by splitting on :// once
+        value = value.split("://", 1)[1]
     ddb.execute(f"SET {key}='{value}'")
 
 # Query alive files
