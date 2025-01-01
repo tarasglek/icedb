@@ -304,7 +304,8 @@ class IceDBv3:
                 merged_time if x.path in acc_file_paths else x.tombstone),
                                        m_file_markers))
 
-
+            print("acc_file_paths", acc_file_paths);
+            print("m_file_markers", list(map(lambda x: x.path, m_file_markers)));
             new_tombstones = list(map(lambda x: LogTombstone(x, merged_time),
                                       merged_log_files))
 
@@ -352,26 +353,37 @@ class IceDBv3:
                 Bucket=self.log_s3c.s3bucket,
                 Key=file['Key']
             )
+            print(f"======tombstone_cleanup {file['Key']}======")
             jsonl = str(obj['Body'].read(), encoding="utf-8").split("\n")
+            print("\n".join(jsonl))
+            print("======")
             meta_json = json.loads(jsonl[0])
             meta = LogMetadataFromJSON(meta_json)
+            expired = now - min_age_ms
 
             # Log tombstones
             if meta.tombstoneLineIndex is not None:
                 for i in range(meta.tombstoneLineIndex, meta.fileLineIndex):
                     tmb = LogTombstoneFromJSON(dict(json.loads(jsonl[i])))
-                    if tmb.createdMS <= now - min_age_ms:
+                    print(f"considering deleting log {tmb.path}: {tmb.createdMS} > {expired} ({tmb.createdMS - expired})")
+                    if tmb.createdMS <= expired:
+                        print(f"- deleting {tmb.path}")
                         log_files_to_delete[tmb.path] = True
-
+                    else:
+                        print(f"- not old enough {tmb.path}")
             # File markers
             for i in range(meta.fileLineIndex, len(jsonl)):
                 fm_json = dict(json.loads(jsonl[i]))
                 fm = FileMarkerFromJSON(fm_json)
-                if fm.createdMS <= now - min_age_ms and fm.tombstone is not None:
+                print(f"considering deleting data file {fm.path}: {fm.createdMS} > {expired} ({fm.createdMS - expired})")
+
+                if fm.createdMS <= expired and fm.tombstone is not None:
                     data_files_to_delete[fm.path] = True
                     if fm.path in data_files_to_keep:
                         del data_files_to_keep[fm.path]
+                    print(f"- deleting {fm.path}")
                 else:
+                    print(f"- not old enough {fm.path}")
                     data_files_to_keep[fm.path] = fm
 
             # Accumulate schema
