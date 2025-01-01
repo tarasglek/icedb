@@ -95,28 +95,21 @@ ice = IceDBv3(
 
 def once():
 
-    def print_file_stats(description: str, files: list[FileMarker]):
-        """Print summary and details of file markers.
-        
-        Args:
-            description: Description of the file group (e.g. "alive", "tombstoned")
-            files: List of FileMarker objects to summarize
-        """
-        paths = list(map(lambda x: x.path, files))
-        print(f"{len(paths)} {description} files:", paths)
 
 
     # Insert records
     inserted = ice.insert(example_events)
-    print_file_stats("inserted", inserted)
+    print(f"{len(inserted)} created files (ice.insert): {', '.join(x.path for x in inserted)}")
 
     # Read the log state
     log = IceLogIO("demo-host")
-    _, file_markers, _, _ = log.read_at_max_time(s3c, round(time() * 1000))
+    _, file_markers, log_tombstones, log_files = log.read_at_max_time(s3c, round(time() * 1000))
+    print(f"{len(log_files)} log files: {', '.join(log_files)}")
+    print(f"{len(log_tombstones)} log tombstones: {', '.join(x.path for x in log_tombstones)}")
     alive_files = list(filter(lambda x: x.tombstone is None, file_markers))
     tombstoned_files = list(filter(lambda x: x.tombstone, file_markers))
-    print_file_stats("alive", alive_files)
-    print_file_stats("tombstoned", tombstoned_files)
+    print(f"{len(alive_files)} alive files: {', '.join(x.path for x in alive_files)}")
+    print(f"{len(tombstoned_files)} tombstoned files: {', '.join(x.path for x in tombstoned_files)}")
 
     # Setup duckdb for querying local minio
     ddb = duckdb.connect(":memory:")
@@ -139,22 +132,19 @@ def once():
     )
     print(ddb.sql(query))
 
-    while True:
-        new_log, new_file_marker, partition, merged_file_markers, meta = ice.merge()
-        more_to_merge = partition is not None
-        if partition:  # if any merge happened
-            print(f"Merged partition: {partition}")
-            if merged_file_markers:
-                print_file_stats("source files merged", merged_file_markers)
-            if new_file_marker:
-                print_file_stats("new merged file", [new_file_marker])
-        else:
-            break;
-    tombstoned = ice.tombstone_cleanup(1_000)
-    cleaned_logs, deleted_logs, deleted_data = tombstoned
-    print(f"{len(cleaned_logs)} cleaned log files:", cleaned_logs)
-    print(f"{len(deleted_logs)} deleted log files:", deleted_logs)
-    print(f"{len(deleted_data)} deleted data files:", deleted_data)
+    new_log, new_file_marker, partition, merged_file_markers, meta = ice.merge()
+    if  partition is not None:  # if any merge happened
+        print(f"Merged partition: {partition}")
+        if merged_file_markers:
+            print(f"- {len(merged_file_markers)} source files merged: {', '.join(x.path for x in merged_file_markers)}")
+        print(f"- into: {new_file_marker.path}")
+        print(f"- new log: {new_log}")
+        # else:
+        #     break;
+    cleaned_logs, deleted_logs, deleted_data = ice.tombstone_cleanup(1_000)
+    print(f"{len(cleaned_logs)} cleaned log files: {', '.join(cleaned_logs)}")
+    print(f"{len(deleted_logs)} deleted log files: {', '.join(deleted_logs)}")
+    print(f"{len(deleted_data)} deleted data files: {', '.join(deleted_data)}")
 
 
 for i in range(30):
