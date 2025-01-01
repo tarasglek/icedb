@@ -150,7 +150,7 @@ def once():
                 print_file_stats("new merged file", [new_file_marker])
         else:
             break;
-    tombstoned = ice.tombstone_cleanup(10_000)
+    tombstoned = ice.tombstone_cleanup(1_000)
     cleaned_logs, deleted_logs, deleted_data = tombstoned
     print(f"{len(cleaned_logs)} cleaned log files:", cleaned_logs)
     print(f"{len(deleted_logs)} deleted log files:", deleted_logs)
