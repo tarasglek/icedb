@@ -107,10 +107,10 @@ def once():
     print(f"{len(log_files)} log files: {', '.join(log_files)}")
     print(f"{len(log_tombstones)} log tombstones: {', '.join(x.path for x in log_tombstones)}")
     alive_files = list(filter(lambda x: x.tombstone is None, file_markers))
-    tombstoned_files = list(filter(lambda x: x.tombstone, file_markers))
+    tombstoned_files = list(filter(lambda x: x.tombstone is not None, file_markers))
     print(f"{len(alive_files)} alive files: {', '.join(x.path for x in alive_files)}")
     print(f"{len(tombstoned_files)} tombstoned files: {', '.join(x.path for x in tombstoned_files)}")
-
+    print(f"file_markers: {file_markers}")
     # Setup duckdb for querying local minio
     ddb = duckdb.connect(":memory:")
     ddb.execute("install httpfs")
@@ -137,6 +137,7 @@ def once():
         print(f"Merged partition: {partition}")
         if merged_file_markers:
             print(f"- {len(merged_file_markers)} source files merged: {', '.join(x.path for x in merged_file_markers)}")
+            print(f"- merged_file_markers {merged_file_markers}")
         print(f"- into: {new_file_marker.path}")
         print(f"- new log: {new_log}")
         # else:
