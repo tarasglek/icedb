@@ -297,12 +297,11 @@ class IceDBv3:
             merged_time = round(time() * 1000)
             new_file_marker = FileMarker(fullpath, merged_time, merged_file_size)
 
-            updated_markers = list(map(lambda x: FileMarker(
-                x.path,
-                x.createdMS,
-                x.fileBytes,
-                merged_time if x.path in acc_file_paths else x.tombstone),
-                                       m_file_markers))
+            updated_markers = []
+            for x in m_file_markers:
+                tombstone = merged_time if x.path in acc_file_paths else x.tombstone
+                marker = FileMarker(x.path, x.createdMS, x.fileBytes, tombstone)
+                updated_markers.append(marker)
 
             print("acc_file_paths", acc_file_paths);
             print("m_file_markers", list(map(lambda x: x.path, m_file_markers)));
