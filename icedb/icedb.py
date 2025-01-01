@@ -394,7 +394,7 @@ class IceDBv3:
                 Bucket=self.data_s3c.s3bucket,
                 Key=data_path
             )
-            deleted_log_files.append(data_path)
+            deleted_data_files.append(data_path)
 
 
 
