@@ -297,14 +297,17 @@ class IceDBv3:
             merged_time = round(time() * 1000)
             new_file_marker = FileMarker(fullpath, merged_time, merged_file_size)
 
-            updated_markers = []
-            for x in m_file_markers:
-                tombstone = merged_time if x.path in acc_file_paths else x.tombstone
-                marker = FileMarker(x.path, x.createdMS, x.fileBytes, tombstone)
-                updated_markers.append(marker)
 
             print("acc_file_paths", acc_file_paths);
             print("m_file_markers", list(map(lambda x: x.path, m_file_markers)));
+            updated_markers = []
+            for x in m_file_markers:
+                tombstone = merged_time if x.path in acc_file_paths else x.tombstone
+                print(f"tombstone {x.path} {tombstone} (merged_time {merged_time}) (x.path in acc_file_paths): {x.path in acc_file_paths}")
+                marker = FileMarker(x.path, x.createdMS, x.fileBytes, tombstone)
+                print(marker)
+                updated_markers.append(marker)
+
             new_tombstones = list(map(lambda x: LogTombstone(x, merged_time),
                                       merged_log_files))
 
@@ -359,7 +362,7 @@ class IceDBv3:
             meta_json = json.loads(jsonl[0])
             meta = LogMetadataFromJSON(meta_json)
             expired = now - min_age_ms
-
+            skipped_files = 0
             # Log tombstones
             if meta.tombstoneLineIndex is not None:
                 for i in range(meta.tombstoneLineIndex, meta.fileLineIndex):
@@ -369,6 +372,7 @@ class IceDBv3:
                         print(f"- deleting {tmb.path}")
                         log_files_to_delete[tmb.path] = True
                     else:
+                        skipped_files += 1
                         print(f"- not old enough {tmb.path}")
             # File markers
             for i in range(meta.fileLineIndex, len(jsonl)):
@@ -382,6 +386,7 @@ class IceDBv3:
                         del data_files_to_keep[fm.path]
                     print(f"- deleting {fm.path}")
                 else:
+                    skipped_files += 1
                     print(f"- not old enough {fm.path}")
                     data_files_to_keep[fm.path] = fm
 
@@ -390,6 +395,9 @@ class IceDBv3:
             schema.accumulate(list(schema_json.keys()), list(schema_json.values()))
 
             cleaned_log_files.append(file['Key'])
+            if skipped_files > 0:
+                print(f"tomstone_cleanup cancelled {skipped_files} files could not be deleted")
+                return [], [], []
 
         # Delete log tombstones
         for log_path in log_files_to_delete.keys():
