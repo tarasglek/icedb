@@ -387,7 +387,10 @@ class IceDBv3:
                     print(f"- deleting {fm.path}")
                 else:
                     skipped_files += 1
-                    print(f"- not old enough {fm.path}")
+                    if fm.tombstone is None:
+                        print(f"- not tombstoned {fm.path}")
+                    else:
+                        print(f"- not old enough {fm.path}")
                     data_files_to_keep[fm.path] = fm
 
             # Accumulate schema
@@ -396,7 +399,7 @@ class IceDBv3:
 
             cleaned_log_files.append(file['Key'])
             if skipped_files > 0:
-                print(f"tomstone_cleanup cancelled {skipped_files} files could not be deleted")
+                print(f"tomstone_cleanup cancelled for {file['Key']}: {skipped_files} files could not be deleted")
                 return [], [], []
 
         # Delete log tombstones
