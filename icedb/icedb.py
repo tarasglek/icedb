@@ -348,6 +348,8 @@ class IceDBv3:
         schema = Schema()
 
         current_log_files = logio.get_current_log_files(self.log_s3c)
+        cur_schema, cur_files, cur_tombstones, all_log_files = logio.read_at_max_time(self.log_s3c, round(time() * 1000))
+
         # We only need to get merge files
         merge_log_files = list(filter(lambda x: get_log_file_info(x['Key'])[1], current_log_files))
         for file in merge_log_files:
@@ -378,9 +380,18 @@ class IceDBv3:
             for i in range(meta.fileLineIndex, len(jsonl)):
                 fm_json = dict(json.loads(jsonl[i]))
                 fm = FileMarkerFromJSON(fm_json)
-                print(f"considering deleting data file {fm.path}: {fm.createdMS} > {expired} ({fm.createdMS - expired})")
 
-                if fm.createdMS <= expired and fm.tombstone is not None:
+                tombstone = fm.tombstone
+                if not tombstone:
+                    # find fm.path in cur_files
+                    for cf in cur_files:
+                        if cf.path == fm.path:
+                            tombstone = cf.tombstone
+                            break
+                print(f"found tombstone {tombstone} for {fm.path}")
+                if tombstone:
+                    print(f"considering deleting data file {fm.path}: {tombstone} > {expired} ({tombstone - expired})")
+                if tombstone is not None and tombstone <= expired:
                     data_files_to_delete[fm.path] = True
                     if fm.path in data_files_to_keep:
                         del data_files_to_keep[fm.path]
@@ -398,9 +409,6 @@ class IceDBv3:
             schema.accumulate(list(schema_json.keys()), list(schema_json.values()))
 
             cleaned_log_files.append(file['Key'])
-            if skipped_files > 0:
-                print(f"tomstone_cleanup cancelled for {file['Key']}: {skipped_files} files could not be deleted")
-                return [], [], []
 
         # Delete log tombstones
         for log_path in log_files_to_delete.keys():
