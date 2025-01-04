@@ -348,17 +348,17 @@ class IceDBv3:
         data_files_to_keep: dict[str, FileMarker] = {}
         schema = Schema()
 
-        current_log_files = logio.get_current_log_files(self.log_s3c)
         cur_schema, cur_files, cur_tombstones, all_log_files = logio.read_at_max_time(self.log_s3c, round(time() * 1000))
 
         # We only need to get merge files
-        merge_log_files = list(filter(lambda x: get_log_file_info(x['Key'])[1], current_log_files))
-        for file in merge_log_files:
+        merge_log_files = list(filter(lambda x: get_log_file_info(x)[1], all_log_files))
+        
+        for log_file in merge_log_files:
             obj = self.log_s3c.s3.get_object(
                 Bucket=self.log_s3c.s3bucket,
-                Key=file['Key']
+                Key=log_file
             )
-            print(f"======tombstone_cleanup {file['Key']}======")
+            print(f"======tombstone_cleanup {log_file}======")
             jsonl = str(obj['Body'].read(), encoding="utf-8").split("\n")
             print("\n".join(jsonl))
             print("======")
@@ -410,7 +410,7 @@ class IceDBv3:
             schema_json = dict(json.loads(jsonl[meta.schemaLineIndex]))
             schema.accumulate(list(schema_json.keys()), list(schema_json.values()))
 
-            cleaned_log_files.append(file['Key'])
+            cleaned_log_files.append(log_file)
 
         # Delete log tombstones
         for log_path in log_files_to_delete.keys():
