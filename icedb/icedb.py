@@ -343,6 +343,7 @@ class IceDBv3:
         now = round(time() * 1000)
 
         log_files_to_delete: dict[str, bool] = {}
+        log_files_to_keep: dict[str, LogTombstone] = {}
         data_files_to_delete: dict[str, bool] = {}
         data_files_to_keep: dict[str, FileMarker] = {}
         schema = Schema()
@@ -376,6 +377,7 @@ class IceDBv3:
                     else:
                         skipped_files += 1
                         print(f"- not old enough {tmb.path}")
+                        log_files_to_keep[tmb.path] = tmb
             # File markers
             for i in range(meta.fileLineIndex, len(jsonl)):
                 fm_json = dict(json.loads(jsonl[i]))
@@ -434,7 +436,7 @@ class IceDBv3:
             1,
             schema,
             list(data_files_to_keep.values()),
-            None,
+            list(log_files_to_keep.values()),
             merged=True,
             timestamp=round(time()*1000)
         )
