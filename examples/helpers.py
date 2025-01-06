@@ -41,7 +41,7 @@ def delete_all_s3(s3c: S3Client):
         if 'Contents' not in res:
             return
         s3_files += res['Contents']
-        no_more_files = not res['IsTruncated']
+        no_more_files = not res.get('IsTruncated')
         if not no_more_files:
             continuation_token = res['NextContinuationToken']
     for file in s3_files:
